@@ -1,39 +1,43 @@
-#!/usr/bin/env python3
-
-import tf2_ros
-import rospy
+"""
+Class definition of the TemplatePythonNode.
+"""
 from threading import Thread
 
-from frc_robot_utilities_py_node.frc_robot_utilities_py import *
-from frc_robot_utilities_py_node.RobotStatusHelperPy import RobotStatusHelperPy, Alliance, RobotMode
+import rospy
 
+from frc_robot_utilities_py_node.frc_robot_utilities_py import register_for_robot_updates, robot_status
+from frc_robot_utilities_py_node.RobotStatusHelperPy import RobotMode
 
-def ros_func():
-    global hmi_updates
-    global robot_status
+class TemplatePythonNode():
+    """
+    TemplatePythonNode
+    """
 
-    rate = rospy.Rate(20)
-    # Put your code in the appropriate sections in this if statement/while loop
-    while not rospy.is_shutdown():
-        if robot_status.get_mode() == RobotMode.AUTONOMOUS:
-            pass
-        elif robot_status.get_mode() == RobotMode.TELEOP:
-            pass
-        elif robot_status.get_mode() == RobotMode.DISABLED:
-            pass
-        elif robot_status.get_mode() == RobotMode.TEST:
-            pass
+    def __init__(self) -> None:
+        register_for_robot_updates()
 
-        rate.sleep()
+        loop_thread = Thread(target=self.loop)
+        loop_thread.start()
 
+        rospy.spin()
 
-def ros_main(node_name):
-    rospy.init_node(node_name)
-    register_for_robot_updates()
+        loop_thread.join(5)
 
-    t1 = Thread(target=ros_func)
-    t1.start()
+    def loop(self) -> None:
+        """
+        Periodic function for the TemplatePythonNode.
+        """
+        rate = rospy.Rate(20)
 
-    rospy.spin()
+        # Put your code in the appropriate sections in this if statement/while loop.
+        while not rospy.is_shutdown():
+            if robot_status.get_mode() == RobotMode.AUTONOMOUS:
+                pass
+            elif robot_status.get_mode() == RobotMode.TELEOP:
+                pass
+            elif robot_status.get_mode() == RobotMode.DISABLED:
+                pass
+            elif robot_status.get_mode() == RobotMode.TEST:
+                pass
 
-    t1.join(5)
+            rate.sleep()
