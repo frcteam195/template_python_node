@@ -8,7 +8,7 @@ from std_msgs.msg import String
 
 class LocalNode(Node):
     def __init__(self):
-        super().__init__('tt_py_node')
+        super().__init__('template_python_node')
 
 def main(args=None):
     rclpy.init(args=args)
