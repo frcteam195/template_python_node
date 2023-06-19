@@ -1,11 +1,21 @@
 from setuptools import find_packages, setup
+from template.render_jinja_py import render_jinja
+from pathlib import Path
+import os
 
 package_name = 'template_python_node'
+
+base_path_str = str(Path(str(Path(__file__).resolve().parent) + '/'))
+template_path = Path(base_path_str + '/' + package_name + '/generated')
+template_path.mkdir(exist_ok=True)
+os.close(os.open(str(template_path) + '/__init__.py', os.O_CREAT))
+
+render_jinja(base_path_str + '/' + 'template/parameters.py.j2', base_path_str + '/' + package_name+ '/generated/parameters.py')
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=find_packages(exclude=['test', 'template']),
     include_package_data=True,
     data_files=[
         ('share/ament_index/resource_index/packages',

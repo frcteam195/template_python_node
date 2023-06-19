@@ -1,14 +1,16 @@
 #!/usr/bin/python3
 
 import rclpy
-from rclpy.node import Node
+from template_python_node.generated.parameters import ParameterizedNode
 
 from std_msgs.msg import String
 
 
-class LocalNode(Node):
+class LocalNode(ParameterizedNode):
     def __init__(self):
         super().__init__('template_python_node')
+
+
 
 def main(args=None):
     rclpy.init(args=args)
