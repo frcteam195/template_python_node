@@ -2,13 +2,15 @@
 import rclpy
 import rclpy.node
 import rclpy.parameter
+from rcl_interfaces.msg import SetParametersResult
 from dataclasses import dataclass
 from typing import List
+from ck_utilities_py_node.node_handle import NodeHandle
 
 @dataclass
 class parameters_t:
     {% for param_name,type in lang_types.items() %}
-{{param_name}}: {{type}} = None
+{{param_name.replace('__dyn', '')}}: {{type}} = None
     {% endfor %}
 
 
@@ -18,13 +20,42 @@ node.declare_parameter("{{param_name}}", {{ros_type}})
     {% endfor %}
 
     {% for param_name,type in value_types.items() %}
-Parameters.{{param_name}} = node.get_parameter("{{param_name}}").get_parameter_value().{{type}}
+Parameters.{{param_name.replace('__dyn', '')}} = node.get_parameter("{{param_name}}").get_parameter_value().{{type}}
     {% endfor %}
 
 class ParameterizedNode(rclpy.node.Node):
     def __init__(self, node_name):
         super().__init__(node_name)
+        self.__node_handle_initializer = NodeHandle(self)
         self.Parameters = parameters_t()
         load_parameters(self, self.Parameters)
 
+        def on_set_callback(parameter_list):
+            result = SetParametersResult()
+            result.successful = True
 
+            for param in parameter_list:
+{% for param_name, type in params.items() %}
+{% if not param_name.endswith('__dyn') %}
+                if param.name == '{{param_name}}':
+                    result.successful = False
+                    result.reason = "Parameter '{{param_name}}' is not reconfigurable."
+                    break
+{% endif %}
+{% endfor %}
+
+            return result
+
+        def post_set_callback(parameter_list):
+            for param in parameter_list:
+{% for param_name, type in params.items() %}
+{% if param_name.endswith('__dyn') %}
+                if param.name == '{{param_name}}':
+                    self.Parameters.{{param_name.replace('__dyn', '')}} = param.value
+                    self.get_logger().info(f"Updated parameter '{{param_name}}' to: {param.value}")
+{% endif %}
+{% endfor %}
+                pass
+
+        self.add_on_set_parameters_callback(on_set_callback)
+        self.add_post_set_parameters_callback(post_set_callback)
